@@ -42,7 +42,27 @@ USAccidents$Year <- as.factor(USAccidents$Year)
 USAccidents$County <- as.factor(USAccidents$County)
 USAccidents$Severity <- as.factor(USAccidents$Severity)
 
-levels(USAccidents$Severity)
+levels(USAccidents$Weather_Condition)
 
 #Treating NA####
-little_result <- mcar_test(USAccidents[,2:21])
+little_result <- mcar_test(USAccidents[,2:21]) #p-val = 0 55 different patterns 
+
+summary(USAccidents) #First look at which variable have the most na and try to do a logical inputation
+
+naprec <-USAccidents[is.na(USAccidents$Precipitation.in.),] #After looking at the na at Precipitation in we can see that when it doesn't rain sometimes it is not recorded
+table(naprec$Weather_Condition) #From this table we can see that most of the na come from weather conditions with 0 rain and it would make sense to impute them with a 0 in the precipitation
+
+naPrecipitationTo_0 <- c("Blowing Dust", "Clear", "Cloudy", "Dust", "Overcast", "Partly Cloudy", "Smoke")
+precipitation_index <- which(is.na(USAccidents$Precipitation.in.) & USAccidents$Weather_Condition %in% naPrecipitationTo_0)
+USAccidents$Precipitation.in.[precipitation_index] <- 0
+
+
+nawind <-USAccidents[is.na(USAccidents$Wind_Chill.F.),]
+table(nawind$Weather_Condition)
+
+naWindTo_0 <- c("Clear", "Cloudy", "Overcast", "Partly Cloudy")
+wind_index <- which(is.na(USAccidents$Wind_Chill.F.) & USAccidents$Weather_Condition %in% naWindTo_0)
+USAccidents$Wind_Chill.F.[wind_index] <- 0
+
+little_result <- mcar_test(USAccidents[,2:21]) #p-val = 0, 54 different patterns
+summary(USAccidents)
