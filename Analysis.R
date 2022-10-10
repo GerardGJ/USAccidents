@@ -1,4 +1,5 @@
 library(naniar)
+library(impute)
 
 setwd("/Users/Gerard/Desktop/MVA/Project/")
 USAccidents <- read.csv("final_US_Accidents.csv")
@@ -47,8 +48,9 @@ levels(USAccidents$Weather_Condition)
 #Treating NA####
 little_result <- mcar_test(USAccidents[,2:21]) #p-val = 0 55 different patterns 
 
-summary(USAccidents) #First look at which variable have the most na and try to do a logical inputation
+summary(USAccidents) #First look at which variable have the most na and try to do a logical imputation
 
+#Precipitation.in.
 naprec <-USAccidents[is.na(USAccidents$Precipitation.in.),] #After looking at the na at Precipitation in we can see that when it doesn't rain sometimes it is not recorded
 table(naprec$Weather_Condition) #From this table we can see that most of the na come from weather conditions with 0 rain and it would make sense to impute them with a 0 in the precipitation
 
@@ -57,12 +59,26 @@ precipitation_index <- which(is.na(USAccidents$Precipitation.in.) & USAccidents$
 USAccidents$Precipitation.in.[precipitation_index] <- 0
 
 
-nawind <-USAccidents[is.na(USAccidents$Wind_Chill.F.),]
+#Wind_Chill.F. 
+nawind <-USAccidents[is.na(USAccidents$Wind_Chill.F.),] #Observe the NA
 table(nawind$Weather_Condition)
-
-naWindTo_0 <- c("Clear", "Cloudy", "Overcast", "Partly Cloudy")
-wind_index <- which(is.na(USAccidents$Wind_Chill.F.) & USAccidents$Weather_Condition %in% naWindTo_0)
-USAccidents$Wind_Chill.F.[wind_index] <- 0
+wind <- USAccidents[!is.na(USAccidents$Wind_Chill.F.),] #Observe the no na
+table(wind$Weather_Condition)
+  #We can see that good weather conditions have a lot of recordings, therefore we can impute them we will use the mean of each weather condition to impute them
+goodWeather <- c("Clear","Cloudy","Partly Cloudy", "Overcast")
+for(good  in goodWeather){
+  good_df <- wind[which(wind$Weather_Condition == good),]
+  meanwind <- mean(good_df$Wind_Chill.F.)
+  print(meanwind)
+  USAccidents$Wind_Chill.F.[which(is.na(USAccidents$Wind_Chill.F.) & USAccidents$Weather_Condition == good)] <- meanwind
+}
 
 little_result <- mcar_test(USAccidents[,2:21]) #p-val = 0, 54 different patterns
+
+
+#Look at how many missing rows has each accident
 summary(USAccidents)
+na_count <- apply(USAccidents, 1, function(x) sum(is.na(x)))
+table(na_count)
+
+sum(table(na_count)[2:8])/1067434 #50606/1067434 = 0.04740902 
