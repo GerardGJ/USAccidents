@@ -115,29 +115,31 @@ USAccidents_noUnknown <- USAccidents[USAccidents$Weather_Condition %in% USAccide
 
 USAccidents_noUnknown$Season <- as.factor(USAccidents_noUnknown$Season)
 
-  for(w in levels(USAccidents_noUnknown$Weather_Condition)){
-    for(state in levels(USAccidents_noUnknown$State)){
-      for(season in levels(USAccidents_noUnknown$Season)){
-        index <- which(USAccidents_noUnknown$Season == season & USAccidents_noUnknown$State == state & USAccidents_noUnknown$Weather_Condition == w)
-        season_df <- USAccidents_noUnknown[index,]
-        if(sum(is.na(season_df$Wind_Chill.F.)) > 0){
-          season_df$Wind_Chill.F.[is.na(season_df$Wind_Chill.F.)] <- mean(season_df$Wind_Chill.F., na.rm = TRUE) 
-        }
-        if(sum(is.na(season_df$Visibility.mi.)) > 0){
-          season_df$Visibility.mi.[is.na(season_df$Visibility.mi.)] <- mean(season_df$Visibility.mi., na.rm = TRUE)
-        }
-        if(sum(is.na(season_df$Precipitation.in.)) > 0){
-          season_df$Precipitation.in.[is.na(season_df$Precipitation.in.)] <- mean(season_df$Precipitation.in., na.rm = TRUE)
-        }
-        if(sum(is.na(season_df$Humidity...)) > 0){
-          season_df$Humidity...[is.na(season_df$Humidity...)] <- mean(season_df$Humidity..., na.rm = TRUE)
-        }
-        if(sum(is.na(season_df$Pressure.in.)) > 0){
-          season_df$Pressure.in.[is.na(season_df$Pressure.in.)] <- mean(season_df$Pressure.in., na.rm = TRUE)
-        }
-        USAccidents_noUnknown[index,] <- season_df
+for(w in levels(USAccidents_noUnknown$Weather_Condition)){
+  for(state in levels(USAccidents_noUnknown$State)){
+    for(season in levels(USAccidents_noUnknown$Season)){
+       index <- which(USAccidents_noUnknown$Season == season & USAccidents_noUnknown$State == state & USAccidents_noUnknown$Weather_Condition == w)
+       season_df <- USAccidents_noUnknown[index,]
+       if(sum(is.na(season_df$Wind_Chill.F.)) > 0){
+         season_df$Wind_Chill.F.[is.na(season_df$Wind_Chill.F.)] <- mean(season_df$Wind_Chill.F., na.rm = TRUE) 
       }
+      if(sum(is.na(season_df$Visibility.mi.)) > 0){
+         season_df$Visibility.mi.[is.na(season_df$Visibility.mi.)] <- mean(season_df$Visibility.mi., na.rm = TRUE)
+      }
+      if(sum(is.na(season_df$Precipitation.in.)) > 0){
+         season_df$Precipitation.in.[is.na(season_df$Precipitation.in.)] <- mean(season_df$Precipitation.in., na.rm = TRUE)
+      }
+      if(sum(is.na(season_df$Humidity...)) > 0){
+         season_df$Humidity...[is.na(season_df$Humidity...)] <- mean(season_df$Humidity..., na.rm = TRUE)
+      }
+      if(sum(is.na(season_df$Pressure.in.)) > 0){
+        season_df$Pressure.in.[is.na(season_df$Pressure.in.)] <- mean(season_df$Pressure.in., na.rm = TRUE)
+      }
+      USAccidents_noUnknown[index,] <- season_df
     }
   }
+}
 
 USAccidents[Index_na_weatherCondition,] = USAccidents_noUnknown
+
+USAccidents <- USAccidents[-which(USAccidents$Weather_Condition != "Unknown" & (is.na(USAccidents$Wind_Chill.F.) | is.na(USAccidents$Precipitation.in.) | is.na(USAccidents$Humidity...) | is.na(USAccidents$Pressure.in.))),]
