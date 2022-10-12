@@ -14,7 +14,6 @@ str(USAccidents)
 USAccidents$Weather_Condition <- sub(" / Windy", "",USAccidents$Weather_Condition)
 USAccidents$Weather_Condition <- sub(" Shower", "",USAccidents$Weather_Condition)
 USAccidents$Weather_Condition <- sub(" Showers", "",USAccidents$Weather_Condition)
-USAccidents$Weather_Condition <- sub("N/A Precipitation", "Rain",USAccidents$Weather_Condition)
 USAccidents$Weather_Condition <- sub("Rains", "Rain",USAccidents$Weather_Condition)
 USAccidents$Weather_Condition <- sub("Snows", "Snow",USAccidents$Weather_Condition)
 USAccidents$Weather_Condition <- sub("Thunder and Hail", "Thunderstorms and Rain",USAccidents$Weather_Condition)
@@ -106,16 +105,39 @@ set.seed(123)
 sum(is.na(USAccidents$Temperature.F.))
 USAccidents$Temperature.F.[is.na(USAccidents$Temperature.F.)] <- rnorm(sum(is.na(USAccidents$Temperature.F.)),mean = mean(USAccidents$Temperature.F.,na.rm = T), sd = sd(USAccidents$Temperature.F.,na.rm = T))
 
+#Now we will add the missing weather condition as unknown
+USAccidents$Weather_Condition <- as.character(USAccidents$Weather_Condition)
+USAccidents$Weather_Condition[is.na(USAccidents$Weather_Condition)] <- "Unknown"
+USAccidents$Weather_Condition <- as.factor(USAccidents$Weather_Condition)
+#Impute the reamining missing values with the average of its weather conditon, state and season:
+Index_na_weatherCondition <- unique(c(which(is.na(USAccidents$Wind_Chill.F.) == TRUE), which(is.na(USAccidents$Visibility.mi.) == TRUE), which(is.na(USAccidents$Precipitation.in.) == TRUE, which(is.na(USAccidents$Humidity...) == TRUE), which(is.na(USAccidents$Pressure.in.) == TRUE))))
+USAccidents_noUnknown <- USAccidents[USAccidents$Weather_Condition %in% USAccidents$Weather_Condition[Index_na_weatherCondition] & USAccidents$Weather_Condition != "Unknown",]
 
+USAccidents_noUnknown$Season <- as.factor(USAccidents_noUnknown$Season)
 
+  for(w in levels(USAccidents_noUnknown$Weather_Condition)){
+    for(state in levels(USAccidents_noUnknown$State)){
+      for(season in levels(USAccidents_noUnknown$Season)){
+        index <- which(USAccidents_noUnknown$Season == season & USAccidents_noUnknown$State == state & USAccidents_noUnknown$Weather_Condition == w)
+        season_df <- USAccidents_noUnknown[index,]
+        if(sum(is.na(season_df$Wind_Chill.F.)) > 0){
+          season_df$Wind_Chill.F.[is.na(season_df$Wind_Chill.F.)] <- mean(season_df$Wind_Chill.F., na.rm = TRUE) 
+        }
+        if(sum(is.na(season_df$Visibility.mi.)) > 0){
+          season_df$Visibility.mi.[is.na(season_df$Visibility.mi.)] <- mean(season_df$Visibility.mi., na.rm = TRUE)
+        }
+        if(sum(is.na(season_df$Precipitation.in.)) > 0){
+          season_df$Precipitation.in.[is.na(season_df$Precipitation.in.)] <- mean(season_df$Precipitation.in., na.rm = TRUE)
+        }
+        if(sum(is.na(season_df$Humidity...)) > 0){
+          season_df$Humidity...[is.na(season_df$Humidity...)] <- mean(season_df$Humidity..., na.rm = TRUE)
+        }
+        if(sum(is.na(season_df$Pressure.in.)) > 0){
+          season_df$Pressure.in.[is.na(season_df$Pressure.in.)] <- mean(season_df$Pressure.in., na.rm = TRUE)
+        }
+        USAccidents_noUnknown[index,] <- season_df
+      }
+    }
+  }
 
-#Look at how many missing rows has each accident
-summary(USAccidents)
-na_count <- apply(USAccidents, 1, function(x) sum(is.na(x)))
-table(na_count)
-
-sum(table(na_count)[2:8])/1067434 #50606/1067434 = 0.04740902 
-
-
-
-USAccidents[is.na(USAccidents$City),]
+USAccidents[Index_na_weatherCondition,] = USAccidents_noUnknown
