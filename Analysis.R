@@ -11,7 +11,6 @@ USAccidents <- read.csv("final_US_Accidents.csv")
 USAccidents <- USAccidents[,2:21]
 str(USAccidents)
 
-
 #Changing class of variables####
 #Converting to Other the weather conditions with less than a 1% representation####
 more1percent <- names(table(USAccidents$Weather_Condition)[table(USAccidents$Weather_Condition)/1067434 > 0.01])
@@ -84,15 +83,13 @@ set.seed(123)
 sum(is.na(USAccidents$Temperature.F.))
 USAccidents$Temperature.F.[is.na(USAccidents$Temperature.F.)] <- rnorm(sum(is.na(USAccidents$Temperature.F.)),mean = mean(USAccidents$Temperature.F.,na.rm = T), sd = sd(USAccidents$Temperature.F.,na.rm = T))
 
-#Now we will add the missing weather condition as unknown
-USAccidents$Weather_Condition <- as.character(USAccidents$Weather_Condition)
-USAccidents$Weather_Condition[is.na(USAccidents$Weather_Condition)] <- "Unknown"
-USAccidents$Weather_Condition <- as.factor(USAccidents$Weather_Condition)
 #Impute the reamining missing values with the average of its weather conditon, state and season:
 Index_na_weatherCondition <- unique(c(which(is.na(USAccidents$Wind_Chill.F.) == TRUE), which(is.na(USAccidents$Visibility.mi.) == TRUE), which(is.na(USAccidents$Precipitation.in.) == TRUE, which(is.na(USAccidents$Humidity...) == TRUE), which(is.na(USAccidents$Pressure.in.) == TRUE))))
 USAccidents_noUnknown <- USAccidents[USAccidents$Weather_Condition %in% USAccidents$Weather_Condition[Index_na_weatherCondition] & USAccidents$Weather_Condition != "Unknown",]
 
 USAccidents_noUnknown$Season <- as.factor(USAccidents_noUnknown$Season)
+
+
 
 for(w in levels(USAccidents_noUnknown$Weather_Condition)){
   for(state in levels(USAccidents_noUnknown$State)){
