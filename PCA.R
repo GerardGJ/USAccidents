@@ -1,167 +1,161 @@
+# Loading Libraries
 library(naniar)
-library(impute)
 library(stringi)
 library(class)
 library("FactoMineR")
 library("factoextra")
 
-setwd("/Users/anderbarriocampos/Desktop")
+################### PLEASE CHANGE this directories when running the code ###################
+working_dir = "C:/Users/odyky/Desktop/MVA-Project/USAccidents"
+plot_dir = "C:/Users/odyky/Desktop/MVA-Project/Plots/"
+setwd(working_dir)
 
-#USAccidents
-USAccidents <- read.csv("USAccidents_preprocessed.csv")
+# Reading data from the csv generated after preprocessing and univariate-bivariate analysis
+USAccidents <- read.csv("../USAccidents_final_dataset.csv", stringsAsFactors = TRUE)
 summary(USAccidents)
-USAccidents <- USAccidents[,2:23]
-USAccidents$State <- as.factor(USAccidents$State)
-USAccidents$City <- as.factor(USAccidents$City)
-USAccidents$Weather_Condition <- as.factor(USAccidents$Weather_Condition)
+
+# Converting Year, Severity and Month variables into factors
 USAccidents$Year <- as.factor(USAccidents$Year)
-USAccidents$County <- as.factor(USAccidents$County)
 USAccidents$Severity <- as.factor(USAccidents$Severity)
-USAccidents$Humidity... <- as.numeric(USAccidents$Humidity...)
 USAccidents$Month <- as.factor(USAccidents$Month)
 
-USAccidents$Season[USAccidents$Season == "12" | USAccidents$Season == "1" | USAccidents$Season == "2"] = "Winter"
-USAccidents$Season[USAccidents$Season == "6" | USAccidents$Season == "7" | USAccidents$Season == "8"] = "Summer"
-USAccidents$Season[USAccidents$Season == "9" | USAccidents$Season == "10" | USAccidents$Season == "11"] = "Autumn"
-USAccidents$Season[USAccidents$Season == "3" | USAccidents$Season == "4" | USAccidents$Season == "5"] = "Spring"
-USAccidents$Season <- as.factor(USAccidents$Season)
-USAccidents$Season
-USAccidents_noNAs <- USAccidents[rowSums(is.na(USAccidents)) == 0,]
+
+sapply(USAccidents,class) # Checking the class of every variable of the dataset
+numeriques <- which(sapply(USAccidents,is.numeric)) # Creating a vector containing the column index of the dataset's numeric variables
+numeriques # 6 numerical variables for performing PCA
 
 
-sapply(USAccidents,class)
-numeriques <- which(sapply(USAccidents,is.numeric))
-numeriques #7 numerical variables for performing PCA
+# Applying PCA to the numeric variables of the data set
+# Using the qualitative variables as supplementary information for the generation of graphs
 
-df_numeric <- USAccidents[, numeriques]
-sapply(df_numeric, class)
+df_num = USAccidents[,numeriques] # Taking the numerical values of the data set.
+res.pca <- PCA(df_num, scale.unit = TRUE, ncp = 6, graph = FALSE)
+summary(res.pca)
 
-dcon_withNAs <- df_numeric[rowSums(is.na(df_numeric)) > 0,]
-dcon <- df_numeric[rowSums(is.na(df_numeric)) == 0,]
-summary(dcon_withNAs)
-summary(dcon) #dataset with no NA for performing PCA
+# Creating a folder for saving the plots
+dir.create(plot_dir, showWarnings = FALSE)
 
+# Scree plot for the percentage of explained variance for the Principal Components.
+pdf(paste(plot_dir, "percentage_of_explained_variance", ".pdf", sep=""))
+fviz_eig(res.pca, main = "Variance Scree Plot", addlabels = TRUE, ylim = c(0, 50))
+dev.off()
 
-res.pca <- PCA(dcon, scale.unit = TRUE, ncp = 7, graph = FALSE)
-print(res.pca)
-
-fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50)) #screeplot
-
+# Barplot depicting the cumulative sum of variance for the Principal Components.
+pdf(paste(plot_dir, "cumulative_sum_of_variance", ".pdf", sep=""))
 eig.val <-get_eigenvalue(res.pca)
 eig.val
-kaixo <- eig.val[,3]
-bp<-barplot(kaixo, xlab = "Principal Components", ylab = "Cumulative Sum of Inertia")
-text(bp, 0, round(kaixo, 1),cex=1,pos=3) 
+cum_var <- eig.val[,3]
+bp<-barplot(cum_var, xlab = "Principal Components", ylab = "Percentage of Variance", main = "Cumulative Sum of Variance")
+text(bp, 0, round(cum_var, 1),cex=1,pos=3)
+dev.off()
 
 
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(1,2))
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(1,3))
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(1,4))
-#fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(2,1)) SAME AS 1,2
-
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(2,3))
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(2,4))
-
-fviz_pca_ind(res.pca,select.ind = list(contrib = 2000), label="none", axes = c(3,4))
-
-
-
-
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(1,2),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(1,3),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(1,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(2,3),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(2,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
-fviz_pca_ind(res.pca, col.ind = "cos2", select.ind = list(contrib = 2000), label="none", axes = c(3,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE # Avoid text overlapping (slow if many points)
-)
+############Dimension description
+##### The dimdesc() function calculates the correlation coefficient between
+##### a variable and a dimension and performs a significance test.
+res.desc <- dimdesc(res.pca, axes = c(1,2,3), proba = 0.05)
+# Description of dimension 1
+res.desc$Dim.1
+# Description of dimension 2
+res.desc$Dim.2
+# Description of dimension 3
+res.desc$Dim.3
 
 
+#############Variables simple individual projection
+##### Axes 1 and 2
+pdf(paste(plot_dir, "simple_ind_proj_1_2", ".pdf", sep=""))
+fviz_pca_ind(res.pca, label="none", axes = c(1,2))
+dev.off()
+##### Axes 1 and 3
+pdf(paste(plot_dir, "simple_ind_proj_1_3", ".pdf", sep=""))
+fviz_pca_ind(res.pca, label="none", axes = c(1,3))
+dev.off()
+##### Axes 2 and 3
+pdf(paste(plot_dir, "simple_ind_proj_2_3", ".pdf", sep=""))
+fviz_pca_ind(res.pca, label="none", axes = c(2,3))
+dev.off()
 
 
-
+#############Variables factor graph
+##### Axes 1 and 2
+pdf(paste(plot_dir, "variables_factor_map_1_2", ".pdf", sep=""))
 fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(1,2),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
 )
+dev.off()
+
+##### Axes 1 and 3
+pdf(paste(plot_dir, "variables_factor_map_1_3", ".pdf", sep=""))
 fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(1,3),
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
 )
-fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(1,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
-)
+dev.off()
+
+pdf(paste(plot_dir, "variables_factor_map_2_3", ".pdf", sep=""))
 fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(2,3),
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
 )
-fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(2,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
-)
-fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(3,4),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
-)
+dev.off()
 
 
+#############Individuals projections with coloring based on Severity
+#############Taking a sample of 100000 units due to large number of observations
+##### Axes 1 and 2
+pdf(paste(plot_dir, "individuals_projection_axes_1_2", ".pdf", sep=""))
+fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, pointsize = 0.5, 
+             select.ind = list(contrib = 100000), label="none", axes = c(1,2),
+             legend.title = "Severity Levels")
+dev.off()
 
+##### Axes 1 and 3
+pdf(paste(plot_dir, "individuals_projection_axes_1_3", ".pdf", sep=""))
+fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, palette = c("#00AFBB", "#E7B800", "#FC4E07", "#753236"),
+             geom.ind = "point", pointsize = 1.5, label="none", axes = c(1,3),
+             select.ind = list(contrib = 100000),
+             legend.title = "Severity Levels")
+dev.off()
 
+##### Axes 2 and 3
+pdf(paste(plot_dir, "individuals_projection_axes_2_3", ".pdf", sep=""))
+fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, palette = c("#00AFBB", "#E7B800", "#FC4E07", "#753236"),
+             geom.ind = "point", pointsize = 1.5, label="none", axes = c(2,3),
+             select.ind = list(contrib = 100000),
+             legend.title = "Severity Levels")
+dev.off()
 
-
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(1,2), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
+#############Biplots Containing Individuals and Variable Factor Maps
+#############colored and grouped based on Severity levels
+##### Axes 1 and 2
+pdf(paste(plot_dir, "biplot_axes_1_2", ".pdf", sep=""))
+fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,2),
+                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(1,3), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
+dev.off()
+
+##### Axes 1 and 3
+pdf(paste(plot_dir, "biplot_axes_1_3", ".pdf", sep=""))
+fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,3),
+                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(1,4), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
+dev.off()
+
+##### Axes 2 and 3
+pdf(paste(plot_dir, "biplot_axes_axes_2_3", ".pdf", sep=""))
+fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(2,3),
+                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(2,3), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
-                label = "var") +
-  scale_color_brewer(palette="Dark2")+
-  theme_minimal()
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(2,4), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
-                label = "var") +
-  scale_color_brewer(palette="Dark2")+
-  theme_minimal()
-fviz_pca_biplot(res.pca, select.ind = list(contrib = 2000), axes=c(3,4), repel = TRUE,
-                select.var = list(contrib = 7),
-                habillage = USAccidents_noNAs$Severity, addEllipses = TRUE, elipse.level = 0.2,
-                col.var = "red", alpha.var ="cos2",
-                label = "var") +
-  scale_color_brewer(palette="Dark2")+
-  theme_minimal()
+dev.off()
 
 
-
+###NOTES:
+#    Positively correlated variables are grouped together.
+#    Negatively correlated variables are positioned on opposite sides of the plot origin (opposed quadrants).
+#    The distance between variables and the origin measures the quality of the variables on the factor map. 
+#    Variables that are away from the origin are well represented on the factor map.
