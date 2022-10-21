@@ -6,12 +6,12 @@ library("FactoMineR")
 library("factoextra")
 
 ################### PLEASE CHANGE this directories when running the code ###################
-working_dir = "C:/Users/odyky/Desktop/MVA-Project/USAccidents"
+working_dir = "/Users/anderbarriocampos/Desktop"
 plot_dir = "C:/Users/odyky/Desktop/MVA-Project/Plots/"
 setwd(working_dir)
 
 # Reading data from the csv generated after preprocessing and univariate-bivariate analysis
-USAccidents <- read.csv("../USAccidents_final_dataset.csv", stringsAsFactors = TRUE)
+USAccidents <- read.csv("USAccidents_final_dataset.csv", stringsAsFactors = TRUE)
 summary(USAccidents)
 
 # Converting Year, Severity and Month variables into factors
@@ -129,7 +129,7 @@ dev.off()
 ##### Axes 1 and 2
 pdf(paste(plot_dir, "biplot_axes_1_2", ".pdf", sep=""))
 fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,2),
-                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
+                habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
@@ -138,7 +138,7 @@ dev.off()
 ##### Axes 1 and 3
 pdf(paste(plot_dir, "biplot_axes_1_3", ".pdf", sep=""))
 fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,3),
-                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
+                habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
@@ -147,7 +147,7 @@ dev.off()
 ##### Axes 2 and 3
 pdf(paste(plot_dir, "biplot_axes_axes_2_3", ".pdf", sep=""))
 fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(2,3),
-                habillage = df_pca$Severity, addEllipses = TRUE, elipse.level = 0.2,
+                habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
   theme_minimal()
