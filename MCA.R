@@ -79,12 +79,6 @@ fviz_mca_var(mca_us, col.var = "contrib",
              repel = TRUE, # Avoid text overlapping
              ggtheme = theme_minimal(), title="", labelsize=4)
 
-##Contribution of each individual
-fviz_mca_ind(mca_us, col.ind = "contrib", select.ind = list(contrib = 10605),
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
-             repel = TRUE, # Avoid text overlapping
-             ggtheme = theme_minimal(), title="", labelsize=4)
-
 
 #Biplot of correlation of modalities with individuals represented
 fviz_mca_biplot(mca_us, select.ind = list(contrib = 10605),invisible=c("quali.sup"), repel=TRUE, ggtheme = theme_minimal(), title=" ")
