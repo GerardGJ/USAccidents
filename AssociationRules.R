@@ -161,9 +161,9 @@ dev.off()
 
 ######### Combining categorical variables with the df_discret after discretization.
 ######### From the location variables only County is chosen, so the analysis is gonna
-######### be county-wise.
+######### be county-wise and season-wise concerning place and time dimensions of data.
 df_arules <- cbind(df_arules[,
-                      c("Weather_Condition", "Year", "County", "Crossing", "Bump", "Stop", "Traffic_Signal", "Severity", "Month", "Season")
+                      c("Weather_Condition", "Year", "County", "Crossing", "Bump", "Stop", "Traffic_Signal", "Severity", "Season")
                       ],df_discret)
 
 ######### Association Rules
@@ -202,27 +202,39 @@ Totalfreq.itemsets <- eclat(df_arules, parameter=list(supp=0.1, minlen =3))
 inspect(sort(Totalfreq.itemsets, by ="support")[1:30])
 write(Totalfreq.itemsets, file = "../total_frequent_itemsets.csv", sep = ",", col.names = NA)
 
-
-
-################STOP HERE TODAY##########################
-
-######### APRIORI for all Severity levels
-Totalrules <- apriori(df_arules, parameter = list(support = 0.009, confidence = 0.25, minlen = 2))
+######### Rules Generation with APRIORI
+Totalrules <- apriori(df_arules, parameter = list(support = 0.1, confidence = 0.25, minlen = 3))
 summary(Totalrules)
-Severity4rules <- apriori(Severity4Accidents, parameter = list(support = 0.009, confidence = 0.25, minlen = 2))
-summary(Severity4rules)
-Severity3rules <- apriori(Severity3Accidents, parameter = list(support = 0.009, confidence = 0.25, minlen = 2))
-summary(Severity3rules)
-Severity2rules <- apriori(Severity2Accidents, parameter = list(support = 0.009, confidence = 0.25, minlen = 2))
-summary(Severity2rules)
-Severity1rules <- apriori(Severity1Accidents, parameter = list(support = 0.009, confidence = 0.25, minlen = 2))
-summary(Severity1rules)
+write(Totalrules, file = "../total_rules.csv", sep = ",", col.names = NA)
 
+######### Creating 4 subset of rules, taking into account for the rhs
+######### the 4 different levels of severity
 
+######### Subset for Severity1 in rhs is empty
+severity1_subset <- subset(Totalrules, subset = rhs %in% "Severity=Severity1")
+sorted_rules_severity1 <- sort(severity1_subset, by ="lift")
+inspect(sorted_rules_severity1)
+
+######### Subset for Severity2
+severity2_subset <- subset(Totalrules, subset = rhs %in% "Severity=Severity2")
+sorted_rules_severity2 <- sort(severity2_subset, by ="lift")
+write(sorted_rules_severity2, file = "../total_rules_severity2.csv", sep = ",", col.names = NA)
+inspect(sorted_rules_severity2[1:10])
+
+######### Subset for Severity3 in rhs is empty
+severity3_subset <- subset(Totalrules, subset = rhs %in% "Severity=Severity3")
+sorted_rules_severity3 <- sort(severity3_subset, by ="lift")
+inspect(sorted_rules_severity3)
+
+######### Subset for Severity4 in rhs is empty
+severity4_subset <- subset(Totalrules, subset = rhs %in% "Severity=Severity4")
+sorted_rules_severity4 <- sort(severity4_subset, by ="lift")
+inspect(sorted_rules_severity4)
 
 ######### Inspecting top 20 rules sorted by decreasing confidence Total
-inspect(head(sort(Totalrules, by ="lift"),5))
-inspect(head(sort(sort(Totalrules, by ="lift"),by ="confidence"),20))
+top20rules <- head(sort(Totalrules, by ="lift"),20)
+inspect((sort(top20rules,by ="confidence")))
+write(top20rules, file = "../top20_rules_sortedby_lift_and_confidence.csv", sep = ",", col.names = NA)
 
 pdf(paste(plot_dir, "total_rules_confidence_support", ".pdf", sep=""))
 plot(Totalrules)
@@ -232,146 +244,39 @@ pdf(paste(plot_dir, "total_rules_support_lift", ".pdf", sep=""))
 plot(Totalrules, measure = c("support", "lift"), shading = "confidence")
 dev.off()
 
-pdf(paste(plot_dir, "total_rules_top100bylift_graph", ".pdf", sep=""))
-subrulesSeverity4 <- head(Totalrules, n = 100, by = "lift")
-plot(subrulesSeverity4, method ="graph")
+pdf(paste(plot_dir, "top20_rules_by_lift_graph", ".pdf", sep=""))
+plot(top20rules, method ="graph")
 dev.off()
 
-pdf(paste(plot_dir, "total_rules_top100bylift_paracoord", ".pdf", sep=""))
-plot(subrulesSeverity4, method = "paracoord", control = list(reorder = TRUE))
-dev.off
-
-pdf(paste(plot_dir, "total_rules_top100bylift_matrix", ".pdf", sep=""))
-plot(subrulesSeverity4, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
+pdf(paste(plot_dir, "top20_rules_by_lift_paracoord", ".pdf", sep=""))
+plot(top20rules, method = "paracoord", control = list(reorder = TRUE))
 dev.off()
 
-pdf(paste(plot_dir, "total_rules_top100bylift_grouped", ".pdf", sep=""))
-plot(subrulesSeverity4, method="grouped", measure="support", control=list(col=sequential_hcl(200)))
+pdf(paste(plot_dir, "top20_rules_by_lift_matrix", ".pdf", sep=""))
+plot(top20rules, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
 dev.off()
 
+######### Inspecting top 20 rules containing Severity2 in RHS
+top20_severity2_rules <- sorted_rules_severity2[1:20]
+top20_severity2_rules_sorted_by_confidence <- (sort(top20_severity2_rules,by ="confidence"))
 
-######### Inspecting top 20 rules sorted by decreasing confidence Severity4
-inspect(head(sort(Severity4rules, by ="lift"),5))
-inspect(head(sort(sort(Severity4rules, by ="lift"),by ="confidence"),20))
-
-pdf(paste(plot_dir, "rules_severity4_confidence_support", ".pdf", sep=""))
-plot(Severity4rules)
+pdf(paste(plot_dir, "severity2_rules_confidence_support", ".pdf", sep=""))
+plot(top20_severity2_rules_sorted_by_confidence)
 dev.off()
 
-pdf(paste(plot_dir, "rules_severity4_support_lift", ".pdf", sep=""))
-plot(Severity4rules, measure = c("support", "lift"), shading = "confidence")
+pdf(paste(plot_dir, "severity2_rules_support_lift", ".pdf", sep=""))
+plot(top20_severity2_rules_sorted_by_confidence, measure = c("support", "lift"), shading = "confidence")
 dev.off()
 
-pdf(paste(plot_dir, "rules_severity4_top100bylift_graph", ".pdf", sep=""))
-subrulesSeverity4 <- head(Severity4rules, n = 100, by = "lift")
-plot(subrulesSeverity4, method ="graph")
+pdf(paste(plot_dir, "severity2_rules_by_lift_graph", ".pdf", sep=""))
+plot(top20_severity2_rules_sorted_by_confidence, method ="graph")
 dev.off()
 
-pdf(paste(plot_dir, "rules_severity4_top100bylift_paracoord", ".pdf", sep=""))
-plot(subrulesSeverity4, method = "paracoord", control = list(reorder = TRUE))
-dev.off
-
-pdf(paste(plot_dir, "rules_severity4_top100bylift_matrix", ".pdf", sep=""))
-plot(subrulesSeverity4, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
+pdf(paste(plot_dir, "severity2_rules_by_lift_paracoord", ".pdf", sep=""))
+plot(top20_severity2_rules_sorted_by_confidence, method = "paracoord", control = list(reorder = TRUE))
 dev.off()
 
-pdf(paste(plot_dir, "rules_severity4_top100bylift_grouped", ".pdf", sep=""))
-plot(subrulesSeverity4, method="grouped", measure="support", control=list(col=sequential_hcl(200)))
+pdf(paste(plot_dir, "severity2_rules_by_lift_matrix", ".pdf", sep=""))
+plot(top20_severity2_rules_sorted_by_confidence, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
 dev.off()
-
-######### Inspecting top 20 rules sorted by decreasing confidence Severity3
-inspect(head(sort(Severity3rules, by ="lift"),5))
-inspect(head(sort(sort(Severity3rules, by ="lift"),by ="confidence"),20))
-
-pdf(paste(plot_dir, "rules_severity3_confidence_support", ".pdf", sep=""))
-plot(Severity3rules)
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity3_support_lift", ".pdf", sep=""))
-plot(Severity3rules, measure = c("support", "lift"), shading = "confidence")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity3_top100bylift_graph", ".pdf", sep=""))
-subrulesSeverity3 <- head(Severity3rules, n = 100, by = "lift")
-plot(subrulesSeverity3, method ="graph")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity3_top100bylift_paracoord", ".pdf", sep=""))
-plot(subrulesSeverity3, method = "paracoord", control = list(reorder = TRUE))
-dev.off
-
-pdf(paste(plot_dir, "rules_severity3_top100bylift_matrix", ".pdf", sep=""))
-plot(subrulesSeverity3, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity3_top100bylift_grouped", ".pdf", sep=""))
-plot(subrulesSeverity3, method="grouped", measure="support", control=list(col=sequential_hcl(200)))
-dev.off()
-
-
-######### Inspecting top 20 rules sorted by decreasing confidence Severity2
-inspect(head(sort(Severity2rules, by ="lift"),5))
-inspect(head(sort(sort(Severity2rules, by ="lift"),by ="confidence"),20))
-
-pdf(paste(plot_dir, "rules_severity2_confidence_support", ".pdf", sep=""))
-plot(Severity2rules)
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity2_support_lift", ".pdf", sep=""))
-plot(Severity2rules, measure = c("support", "lift"), shading = "confidence")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity2_top100bylift_graph", ".pdf", sep=""))
-subrulesSeverity2 <- head(Severity2rules, n = 100, by = "lift")
-plot(subrulesSeverity2, method ="graph")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity2_top100bylift_paracoord", ".pdf", sep=""))
-plot(subrulesSeverity2, method = "paracoord", control = list(reorder = TRUE))
-dev.off
-
-pdf(paste(plot_dir, "rules_severity2_top100bylift_matrix", ".pdf", sep=""))
-plot(subrulesSeverity2, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity2_top100bylift_grouped", ".pdf", sep=""))
-plot(subrulesSeverity2, method="grouped", measure="support", control=list(col=sequential_hcl(200)))
-dev.off()
-
-######### Inspecting top 20 rules sorted by decreasing confidence Severity1
-inspect(head(sort(Severity1rules, by ="lift"),5))
-inspect(head(sort(sort(Severity1rules, by ="lift"),by ="confidence"),20))
-
-pdf(paste(plot_dir, "rules_severity1_confidence_support", ".pdf", sep=""))
-plot(Severity1rules)
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity1_support_lift", ".pdf", sep=""))
-plot(Severity1rules, measure = c("support", "lift"), shading = "confidence")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity1_top100bylift_graph", ".pdf", sep=""))
-subrulesSeverity1 <- head(Severity1rules, n = 100, by = "lift")
-plot(subrulesSeverity1, method ="graph")
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity1_top100bylift_paracoord", ".pdf", sep=""))
-plot(subrulesSeverity1, method = "paracoord", control = list(reorder = TRUE))
-dev.off
-
-pdf(paste(plot_dir, "rules_severity1_top100bylift_matrix", ".pdf", sep=""))
-plot(subrulesSeverity1, method="matrix", measure=c("support","confidence"), control=list(reorder="measure", col=sequential_hcl(200)))
-dev.off()
-
-pdf(paste(plot_dir, "rules_severity1_top100bylift_grouped", ".pdf", sep=""))
-plot(subrulesSeverity1, method="grouped", measure="support", control=list(col=sequential_hcl(200)))
-dev.off()
-
-
-##### Write rules to CSV
-write(subrulesSeverity1, file = "data1.csv", sep = ",", col.names = NA)
-write(subrulesSeverity2, file = "data2.csv", sep = ",", col.names = NA)
-write(subrulesSeverity3, file = "data3.csv", sep = ",", col.names = NA)
-write(subrulesSeverity4, file = "data4.csv", sep = ",", col.names = NA)
-
 
