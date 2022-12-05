@@ -4,6 +4,9 @@ library(cluster)
 library(NbClust)
 library(vegan)
 library(supc)
+library(caret)
+library(factoextra)
+
 
 # Setting Working Environment 
 # Clear plots
@@ -40,8 +43,8 @@ dd$Month <- as.factor(dd$Month)
 # Scalling Numerical Variables before Clustering
 cols <- sapply(dd, is.numeric)
 dd.scaled <-dd
-dd.scaled[cols] <- scale(dd.scaled[cols])
-
+process <- preProcess(dd.scaled[cols], method=c("range"))
+dd.scaled[cols] <- predict(process, dd.scaled[cols])
 summary(dd.scaled)
 
 # Checking Associations and Variance of Severity (target variable), on different
@@ -66,18 +69,32 @@ month <- dd.scaled$Month
 state <- dd.scaled$State
 year <- dd.scaled$Year
 
-drop <- names(dd.scaled) %in% c("ID", "City", "County", "Severity", "Start_Time", "End_Time", "Month") #we discard this variables
+drop <- names(dd.scaled) %in% c("ID", "City", "County", "Start_Time", "End_Time", "Month") #we discard this variables
 dd.scaled <- dd.scaled[,!drop]
 dim(dd.scaled)
 
 
 table(dd.scaled$Year)
 table(dd.scaled$State)
+table(dd.scaled$Severity)
+# From the following table we can see that for California in 2020
+# there are several accidents characterized by all different levels 
+# of severity. For that reason our analysis for the rest of the project
+# will only focus on Accidents that took place in California in 2020, and
+# we will sample randomly 20k observations from all 4 different levels of
+# Severity. (20k due to our RAM memory limitation for the calcuation of the
+# distance matrices for the clustering.) 
+table(dd.scaled$Severity,dd.scaled$Year,dd.scaled$State)
 
 # Filter data frame based on State and Year, for dimensionality reduction
-filtered_data <- dd.scaled[dd.scaled$State == 'CA' & dd.scaled$Year == "2016",]
+CA_2020 <- dd.scaled[dd.scaled$State == 'CA' & dd.scaled$Year == "2020",]
+nrow(CA_2020)
+severity_2_sample <-CA_2020[ sample( which( CA_2020$Severity == "Severity2" ) , 10000 ) , ]
+other_severities <- CA_2020[CA_2020$Severity %in% c("Severity1","Severity3","Severity4"),]
+filtered_data = rbind(severity_2_sample,other_severities)
 nrow(filtered_data)
-drop_final <- names(filtered_data) %in% c("State", "Year") #we discard those variables
+
+drop_final <- names(filtered_data) %in% c("State", "Year", "Severity") #we discard those variables
 dd_final <- filtered_data[,!drop_final]
 
 # HIERARCHICAL CLUSTERING
@@ -102,9 +119,28 @@ for(i in 1:length(indices)){
 names(particiones) <- indices
 particiones #we select k = 5
 
-#Labelling of Clustering Results
-# Decision on k=5 (just for final-user requirements)
-k <- 5
+
+sil_width <- c(NA)
+for(i in 2:10){
+  
+  pam_fit <- pam(daisy,
+                 diss = TRUE,
+                 k = i)
+  
+  sil_width[i] <- pam_fit$silinfo$avg.width
+  
+}
+# Plot sihouette width (higher is better)
+plot(1:10, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width")
+lines(1:10, sil_width)
+
+# Labelling of Clustering Results
+# Decision on k=4 (just for final-user requirements)
+plot(h1)
+rect.hclust(h1, k=4, border=6)
+k <- 4
 cut_k <- cutree(h1,k)
 
 ###### Selection of K by using silhoutte
@@ -113,7 +149,7 @@ pdf('silhouttes.pdf')
 plot(sil)
 dev.off()
 
-df <- cbind(dd_final, cluster = factor(unname(cut_k), labels = c("cluster-1", "cluster-2", "cluster-3", "cluster-4", "cluster-5")))
+df <- cbind(dd_final, cluster = factor(unname(cut_k), labels = c("cluster-1", "cluster-2", "cluster-3", "cluster-4")))
 
 ind <- as.numeric(rownames(df))
 
@@ -141,8 +177,5 @@ df$Year <- as.factor(df$Year)
 table(cut_k)
 
 
-write.csv(df, file = "./clustered_data_CA_2016.csv")
-### CURE ATTEMPTS ####
-#x.freq <- freq.poly(dd, breaks = 1000000)
-#cn<-supc1(dd)
+write.csv(df, file = "./clustered_data_CA_2022.csv")
 
