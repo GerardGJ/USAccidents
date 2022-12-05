@@ -176,6 +176,8 @@ df$Year <- as.factor(df$Year)
 
 table(cut_k)
 
+boxplot(Severity~cluster,data=df, id=list(n=Inf,labels=row.names(df)),
+        main = "Association of Severity and Clusters")
 
-write.csv(df, file = "./clustered_data_CA_2022.csv")
+write.csv(df, file = "./clustered_data_CA_2020.csv")
 
