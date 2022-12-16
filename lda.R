@@ -247,7 +247,7 @@ text(LDA1,LDA2, SeverityNum, cex=0.5, pos=4, col=SeverityNum)
 # vector
 training_posterior <- training.lda.values$posterior
 training_pred <- training.lda.values$class
-head(cbind(round(training_posterior, 4), class=training_class),10)
+head(cbind(round(training_posterior, 4), class=training_pred),10)
 
 # plot(training.lda, col=as.numeric(SeverityNum)) # assign color code based on factor code --> APPENDIX
 
@@ -270,7 +270,7 @@ training_mr <- 1-training_accuracy; training_mr
 # ROC for Training Set
 train_prob = predict(training.lda, training.Standard[1:6], type = "response")
 
-resut = multiclass.roc(training.Standard$Severity, train_prob$posterior)
+result = multiclass.roc(training.Standard$Severity, train_prob$posterior)
 
 pdf(paste(plot_dir, "AUC_train", ".pdf", sep=""))
 par(mfrow=c(2,3))
