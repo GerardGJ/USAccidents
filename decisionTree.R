@@ -112,14 +112,20 @@ tree6 <- rpart(Severity ~ Weather_Condition + Crossing + Bump + Stop + Traffic_S
                + Precipitation.in. + Humidity... + Temperature.F. + Distance.mi.  
                + Pressure.in. + Season + district, data = training, control=rpart.control(cp=0.5,minsplit = 200,maxdepth = 20))
 rpart.plot(tree6,box.palette="Blue")
+
+tree7 <- rpart(Severity ~ Weather_Condition + Crossing + Bump + Stop + Traffic_Signal + Visibility.mi. 
+               + Precipitation.in. + Humidity... + Temperature.F. + Distance.mi.  
+               + Pressure.in. + Season + district, data = training, control=rpart.control(cp=0.001,minsplit = 1000,maxdepth = 20))
+rpart.plot(tree7)
 # Predictions
 
-prediction1 <- predict(tree1, data = training)
-prediction2 <- predict(tree2, data = training)
-prediction3 <- predict(tree3, data = training)
-prediction4 <- predict(tree4, data = training)
-prediction5 <- predict(tree5, data = training)
-prediction6 <- predict(tree6, data = training)
+prediction1 <- predict(tree1, newdata = training)
+prediction2 <- predict(tree2, newdata = training)
+prediction3 <- predict(tree3, newdata = training)
+prediction4 <- predict(tree4, newdata = training)
+prediction5 <- predict(tree5, newdata = training)
+prediction6 <- predict(tree6, newdata = training)
+prediction7 <- predict(tree7, newdata = training)
 # Calculate the error rate in the learning sample
 nlearn <- length(learn)
 
@@ -127,123 +133,167 @@ nlearn <- length(learn)
 predClass1 <- apply(prediction1,1,which.max)
 confusionMatrix1 <- table(training$Severity,predClass1)
 confusionMatrix1
-error_rate1.learn <- 100*(confusionMatrix1[1,1]+confusionMatrix1[2,2]+confusionMatrix1[3,3])/nlearn 
+error_rate1.learn <- 100*(1-(confusionMatrix1[1,1]+confusionMatrix1[2,2]+confusionMatrix1[3,3])/nlearn)
 error_rate1.learn
 
 # Tree 2
 predClass2 <- apply(prediction2,1,which.max)
 confusionMatrix2 <- table(training$Severity,predClass2)
 confusionMatrix2
-error_rate2.learn <- 100*(confusionMatrix2[1,1]+confusionMatrix2[2,2]+confusionMatrix2[3,3]+confusionMatrix2[4,4])/nlearn 
+error_rate2.learn <- 100*(1-(confusionMatrix2[1,1]+confusionMatrix2[2,2]+confusionMatrix2[3,3]+confusionMatrix2[4,4])/nlearn) 
 error_rate2.learn
 
 # Tree 3
 predClass3 <- apply(prediction3,1,which.max)
 confusionMatrix3 <- table(training$Severity,predClass3)
 confusionMatrix3
-error_rate3.learn <- 100*(confusionMatrix3[1,1]+confusionMatrix3[2,2]+confusionMatrix3[3,3])/nlearn 
+error_rate3.learn <- 100*(1-(confusionMatrix3[1,1]+confusionMatrix3[2,2]+confusionMatrix3[3,3])/nlearn) 
 error_rate3.learn
 
 # Tree 4
 predClass4 <- apply(prediction4,1,which.max)
 confusionMatrix4 <- table(training$Severity,predClass4)
 confusionMatrix4
-error_rate4.learn <- 100*(confusionMatrix4[1,1]+confusionMatrix4[2,2]+confusionMatrix4[3,3])/nlearn 
+error_rate4.learn <- 100*(1-(confusionMatrix4[1,1]+confusionMatrix4[2,2]+confusionMatrix4[3,3])/nlearn) 
 error_rate4.learn
 
 # Tree 5
 predClass5 <- apply(prediction5,1,which.max)
 confusionMatrix5 <- table(training$Severity,predClass5)
 confusionMatrix5
-error_rate5.learn <- 100*(confusionMatrix5[1,1]+confusionMatrix5[2,2])/nlearn 
+error_rate5.learn <- 100*(1-(confusionMatrix5[1,1]+confusionMatrix5[2,2])/nlearn) 
 error_rate5.learn
 
 # Tree 6
 predClass6 <- apply(prediction6,1,which.max)
 confusionMatrix6 <- table(training$Severity,predClass6)
 confusionMatrix6
-error_rate6.learn <- 100*(confusionMatrix6[1,1])/nlearn 
+error_rate6.learn <- 100*(1-(confusionMatrix6[1,1])/nlearn)
 error_rate6.learn
 
-errorvec <- c(error_rate1.learn,error_rate2.learn,error_rate3.learn,error_rate4.learn,error_rate5.learn,error_rate6.learn)
-errorvec[which.min(errorvec)]
-#The best is tree 6
+# Tree 7
+predClass7 <- apply(prediction7,1,which.max)
+confusionMatrix7 <- table(training$Severity,predClass7)
+confusionMatrix7
+error_rate7.learn <- 100*(1-(confusionMatrix7[1,1]+confusionMatrix7[2,2]+confusionMatrix7[3,3])/nlearn) 
+error_rate7.learn
 
-# ROC tree 6
+errorvec <- c(error_rate1.learn,error_rate2.learn,error_rate3.learn,error_rate4.learn,error_rate5.learn,error_rate6.learn,error_rate7.learn)
+errorvec[which.min(errorvec)]
+#The best is tree 4
+
+# ROC tree 4
 library(ROCit)
 test = df[-learn,]
-testPredict6 <- predict(tree6,newdata = test)
-predTest6 <- apply(testPredict6,1,which.max)
+testPredict4 <- predict(tree4,newdata = test)
+predTest4 <- apply(testPredict4,1,which.max)
 par(mfrow = c(2,2))
 # Severity 1
 severity1.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity1",1,0),
-                                     ifelse(predTest6 == 1,1,0)))
+                                     ifelse(predTest4 == 1,1,0)))
 
 ROCit_obj.1 <- rocit(score=severity1.roc[,2],class=severity1.roc[,1])
 plot(ROCit_obj.1)
 
 # Severity 2
 severity2.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity2",1,0),
-                                     ifelse(predTest6 == 2,1,0)))
+                                     ifelse(predTest4 == 2,1,0)))
 
 ROCit_obj.2 <- rocit(score=severity2.roc[,2],class=severity2.roc[,1])
 plot(ROCit_obj.2)
 
 # Severity 3
 severity3.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity3",1,0),
-                                     ifelse(predTest6 == 3,1,0)))
+                                     ifelse(predTest4 == 3,1,0)))
 
 ROCit_obj.3 <- rocit(score=severity3.roc[,2],class=severity3.roc[,1])
 roc3  = plot(ROCit_obj.3)
 
 # Severity 4
 severity4.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity4",1,0),
-                                     ifelse(predTest6 == 4,1,0)))
+                                     ifelse(predTest4 == 4,1,0)))
 
 ROCit_obj.4 <- rocit(score=severity4.roc[,2],class=severity4.roc[,1])
 plot(ROCit_obj.4)
 
-#ROC tree 5
-testPredict5 <- predict(tree5,newdata = test)
-predTest5 <- apply(testPredict5,1,which.max)
+#ROC tree 7
+testPredict7 <- predict(tree7,newdata = test)
+predTest7 <- apply(testPredict7,1,which.max)
 # Severity 1
 severity1.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity1",1,0),
-                                     ifelse(predTest5 == 1,1,0)))
+                                     ifelse(predTest7 == 1,1,0)))
 
 ROCit_obj.1 <- rocit(score=severity1.roc[,2],class=severity1.roc[,1])
 plot(ROCit_obj.1)
 
 # Severity 2
 severity2.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity2",1,0),
-                                     ifelse(predTest5 == 2,1,0)))
+                                     ifelse(predTest7 == 2,1,0)))
 
 ROCit_obj.2 <- rocit(score=severity2.roc[,2],class=severity2.roc[,1])
 plot(ROCit_obj.2)
 
 # Severity 3
 severity3.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity3",1,0),
-                                     ifelse(predTest5 == 3,1,0)))
+                                     ifelse(predTest7 == 3,1,0)))
 
 ROCit_obj.3 <- rocit(score=severity3.roc[,2],class=severity3.roc[,1])
 roc3  = plot(ROCit_obj.3)
 
 # Severity 4
 severity4.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity4",1,0),
-                                     ifelse(predTest5 == 4,1,0)))
+                                     ifelse(predTest7 == 4,1,0)))
+
+ROCit_obj.4 <- rocit(score=severity4.roc[,2],class=severity4.roc[,1])
+plot(ROCit_obj.4)
+
+#ROC tree 2
+testPredict2 <- predict(tree2,newdata = test)
+predTest2 <- apply(testPredict2,1,which.max)
+# Severity 1
+severity1.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity1",1,0),
+                                     ifelse(predTest2 == 1,1,0)))
+
+ROCit_obj.1 <- rocit(score=severity1.roc[,2],class=severity1.roc[,1])
+plot(ROCit_obj.1)
+
+# Severity 2
+severity2.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity2",1,0),
+                                     ifelse(predTest2 == 2,1,0)))
+
+ROCit_obj.2 <- rocit(score=severity2.roc[,2],class=severity2.roc[,1])
+plot(ROCit_obj.2)
+
+# Severity 3
+severity3.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity3",1,0),
+                                     ifelse(predTest2 == 3,1,0)))
+
+ROCit_obj.3 <- rocit(score=severity3.roc[,2],class=severity3.roc[,1])
+roc3  = plot(ROCit_obj.3)
+
+# Severity 4
+severity4.roc <- as.data.frame(cbind(ifelse(test$Severity == "Severity4",1,0),
+                                     ifelse(predTest2 == 4,1,0)))
 
 ROCit_obj.4 <- rocit(score=severity4.roc[,2],class=severity4.roc[,1])
 plot(ROCit_obj.4)
 
 # Error rate in the test sample
 
-predTest <- apply(testPredict5,1,which.max)
+predTest <- apply(testPredict2,1,which.max)
 confusionMatrixTest <- table(test$Severity,predTest)
 confusionMatrixTest
-error_rate.test <- 100*(confusionMatrixTest[1,1]+confusionMatrixTest[2,2])/nlearn 
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]))/nlearn 
 error_rate.test
 
-predTest <- apply(testPredict6,1,which.max)
+predTest <- apply(testPredict7,1,which.max)
 confusionMatrixTest <- table(test$Severity,predTest)
 confusionMatrixTest
-error_rate.test <- 100*(confusionMatrixTest[1,1])/nlearn 
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1])/nlearn) 
+error_rate.test
+
+predTest <- apply(testPredict2,1,which.max)
+confusionMatrixTest <- table(test$Severity,predTest)
+confusionMatrixTest
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]))/nlearn 
 error_rate.test
