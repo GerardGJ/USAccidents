@@ -283,17 +283,18 @@ plot(ROCit_obj.4)
 predTest <- apply(testPredict2,1,which.max)
 confusionMatrixTest <- table(test$Severity,predTest)
 confusionMatrixTest
-error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]))/nlearn 
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]+confusionMatrixTest[3,3]+confusionMatrixTest[4,4])/nlearn) 
 error_rate.test
 
 predTest <- apply(testPredict7,1,which.max)
 confusionMatrixTest <- table(test$Severity,predTest)
 confusionMatrixTest
-error_rate.test <- 100*(1-(confusionMatrixTest[1,1])/nlearn) 
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]+confusionMatrixTest[3,3])/nlearn) 
 error_rate.test
 
-predTest <- apply(testPredict2,1,which.max)
+testPredict5 <- predict(tree5,newdata = test)
+predTest <- apply(testPredict5,1,which.max)
 confusionMatrixTest <- table(test$Severity,predTest)
 confusionMatrixTest
-error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2]))/nlearn 
+error_rate.test <- 100*(1-(confusionMatrixTest[1,1]+confusionMatrixTest[2,2])/nlearn) 
 error_rate.test
