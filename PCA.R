@@ -6,8 +6,8 @@ library("FactoMineR")
 library("factoextra")
 
 ################### PLEASE CHANGE this directories when running the code ###################
-working_dir = "/Users/anderbarriocampos/Desktop"
-plot_dir = "C:/Users/odyky/Desktop/MVA-Project/Plots/"
+working_dir = "/Users/ander.barrio/Desktop/MVA-Project"
+plot_dir = "/Users/ander.barrio/Desktop/plots"
 setwd(working_dir)
 
 # Reading data from the csv generated after preprocessing and univariate-bivariate analysis
@@ -105,7 +105,7 @@ dev.off()
 pdf(paste(plot_dir, "individuals_projection_axes_1_2", ".pdf", sep=""))
 fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, pointsize = 0.5, 
              select.ind = list(contrib = 100000), label="none", axes = c(1,2),
-             legend.title = "Severity Levels")
+             legend.title = "Severity Levels") +xlim(-10, 10) + ylim (-10, 10)
 dev.off()
 
 ##### Axes 1 and 3
@@ -113,7 +113,7 @@ pdf(paste(plot_dir, "individuals_projection_axes_1_3", ".pdf", sep=""))
 fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, palette = c("#00AFBB", "#E7B800", "#FC4E07", "#753236"),
              geom.ind = "point", pointsize = 1.5, label="none", axes = c(1,3),
              select.ind = list(contrib = 100000),
-             legend.title = "Severity Levels")
+             legend.title = "Severity Levels") +xlim(-10, 10) + ylim (-10, 10)
 dev.off()
 
 ##### Axes 2 and 3
@@ -132,7 +132,7 @@ fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,2),
                 habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
-  theme_minimal()
+  theme_minimal() +xlim(-10, 10) + ylim (-10, 10)
 dev.off()
 
 ##### Axes 1 and 3
