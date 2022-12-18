@@ -92,6 +92,7 @@ fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(1,3),
 )
 dev.off()
 
+##### Axes 2 and 3
 pdf(paste(plot_dir, "variables_factor_map_2_3", ".pdf", sep=""))
 fviz_pca_var(res.pca, col.var = "contrib", repel = TRUE, axes=c(2,3),
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
@@ -121,7 +122,7 @@ pdf(paste(plot_dir, "individuals_projection_axes_2_3", ".pdf", sep=""))
 fviz_pca_ind(res.pca, col.ind = USAccidents$Severity, palette = c("#00AFBB", "#E7B800", "#FC4E07", "#753236"),
              geom.ind = "point", pointsize = 1.5, label="none", axes = c(2,3),
              select.ind = list(contrib = 100000),
-             legend.title = "Severity Levels")
+             legend.title = "Severity Levels") +xlim(-10, 10) + ylim (-10, 10)
 dev.off()
 
 #############Biplots Containing Individuals and Variable Factor Maps
@@ -132,7 +133,7 @@ fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,2),
                 habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
-  theme_minimal() +xlim(-10, 10) + ylim (-10, 10)
+  theme_minimal() +xlim(-75, 75) + ylim (-35, 55)
 dev.off()
 
 ##### Axes 1 and 3
@@ -141,7 +142,7 @@ fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(1,3),
                 habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
-  theme_minimal()
+  theme_minimal() +xlim(-75, 60) + ylim (-50, 50)
 dev.off()
 
 ##### Axes 2 and 3
@@ -150,7 +151,7 @@ fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(2,3),
                 habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
-  theme_minimal()
+  theme_minimal() +xlim(-75, 50) + ylim (-50,110)
 dev.off()
 
 
