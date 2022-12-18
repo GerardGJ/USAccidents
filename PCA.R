@@ -151,7 +151,7 @@ fviz_pca_biplot(res.pca, select.ind = list(contrib = 100000), axes=c(2,3),
                 habillage = USAccidents$Severity, addEllipses = TRUE, elipse.level = 0.2,
                 label = "var") +
   scale_color_brewer(palette="Dark2")+
-  theme_minimal() +xlim(-75, 50) + ylim (-50,110)
+  theme_minimal()  +xlim(-100, 50) + ylim (-100,110)
 dev.off()
 
 
