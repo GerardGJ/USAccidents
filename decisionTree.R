@@ -180,7 +180,6 @@ error_rate7.learn
 
 errorvec <- c(error_rate1.learn,error_rate2.learn,error_rate3.learn,error_rate4.learn,error_rate5.learn,error_rate6.learn,error_rate7.learn)
 errorvec[which.min(errorvec)]
-#The best is tree 4
 
 # ROC tree 4
 library(ROCit)
